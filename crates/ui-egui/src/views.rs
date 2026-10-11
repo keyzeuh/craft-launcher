@@ -69,7 +69,7 @@ type Section = (Option<(&'static str, &'static str)>, Vec<&'static str>);
 impl LauncherUi {
     /// The header bar; with a custom or macOS title bar it is also the window's title bar.
     pub(crate) fn header(&mut self, ui: &mut Ui, bar: TitleBar) {
-        let t = Tokens::get(ui.ctx());
+        let t = Tokens::get(ui.ctx(), self.settings.theme);
         let h = HEADER_H;
         if bar != TitleBar::Native {
             widgets::title_bar_drag(ui);
@@ -120,7 +120,7 @@ impl LauncherUi {
     }
 
     pub(crate) fn toolbar(&mut self, ui: &mut Ui) {
-        let t = Tokens::get(ui.ctx());
+        let t = Tokens::get(ui.ctx(), self.settings.theme);
         if self.dialog.is_none()
             && let Some(r) = self.launcher_update.clone()
         {
@@ -261,7 +261,7 @@ impl LauncherUi {
 
     /// News from ArtCraft's release feed (and app renames), until the user dismisses each.
     fn announcements(&mut self, ui: &mut Ui) {
-        let t = Tokens::get(ui.ctx());
+        let t = Tokens::get(ui.ctx(), self.settings.theme);
         let shown: Vec<artcraft_launcher_core::feed::Notice> =
             self.announcements.iter().filter(|n| !self.settings.dismissed_notices.contains(&n.id)).take(3).cloned().collect();
         for notice in shown {
@@ -291,7 +291,7 @@ impl LauncherUi {
     }
 
     pub(crate) fn footer(&mut self, ui: &mut Ui) {
-        let t = Tokens::get(ui.ctx());
+        let t = Tokens::get(ui.ctx(), self.settings.theme);
         let now = self.backend.now();
         let status = if self.checking {
             tl!("Checking for updates…").to_string()
@@ -392,7 +392,7 @@ impl LauncherUi {
         } else {
             vec![(None, ids.to_vec())]
         };
-        let t = Tokens::get(ui.ctx());
+        let t = Tokens::get(ui.ctx(), self.settings.theme);
         for (title, list) in sections {
             if list.is_empty() {
                 continue;
@@ -421,7 +421,7 @@ impl LauncherUi {
 
     fn card(&mut self, ui: &mut Ui, id: &str, rect: Rect) {
         let Some(entry) = self.entry(id).cloned() else { return };
-        let t = Tokens::get(ui.ctx());
+        let t = Tokens::get(ui.ctx(), self.settings.theme);
         let app = entry.app;
         let hovered = ui.rect_contains_pointer(rect);
         let lift = ui.ctx().animate_bool_with_time(ui.id().with(("card-hover", id)), hovered, 0.3);
@@ -510,7 +510,7 @@ impl LauncherUi {
 
     pub(crate) fn table(&mut self, ui: &mut Ui, ids: &[&'static str]) {
         use egui_extras::{Column, TableBuilder};
-        let t = Tokens::get(ui.ctx());
+        let t = Tokens::get(ui.ctx(), self.settings.theme);
         let now = self.backend.now();
         let mut sort_clicked = None;
         // The app column's name and tagline line heights, to centre them on the icon.
@@ -661,7 +661,7 @@ impl LauncherUi {
 
     /// The trademark notice under the grid and the table.
     pub(crate) fn trademark_notice(&self, ui: &mut Ui) {
-        let t = Tokens::get(ui.ctx());
+        let t = Tokens::get(ui.ctx(), self.settings.theme);
         ui.add_space(8.0);
         ui.add(egui::Label::new(RichText::new(artcraft_launcher_core::catalog::TRADEMARK_NOTICE).size(11.0).color(t.faint)).wrap());
     }
@@ -698,7 +698,7 @@ impl LauncherUi {
 
     /// The main button (or progress) and the … menu, within `width`.
     fn actions(&mut self, ui: &mut Ui, entry: &AppEntry, status: &AppStatus, width: f32) {
-        let t = Tokens::get(ui.ctx());
+        let t = Tokens::get(ui.ctx(), self.settings.theme);
         let id = entry.app.id.to_string();
         // One square button (the menu) beside the main one.
         let gap = ui.spacing().item_spacing.x;
@@ -852,7 +852,7 @@ impl LauncherUi {
                     ui.close();
                 }
                 ui.separator();
-                if ui.button(RichText::new(tl!("Uninstall…")).color(Tokens::get(ui.ctx()).bad)).clicked() {
+                if ui.button(RichText::new(tl!("Uninstall…")).color(Tokens::get(ui.ctx(), self.settings.theme).bad)).clicked() {
                     self.dialog = Some(Dialog::ConfirmUninstall(id.clone()));
                     ui.close();
                 }

@@ -444,7 +444,7 @@ impl LauncherUi {
             theme::apply(&ctx, self.settings.theme);
             self.applied_theme = Some(self.settings.theme);
         }
-        let tokens = Tokens::get(&ctx);
+        let tokens = Tokens::get(&ctx, self.settings.theme);
         if self.entries.iter().any(|e| e.job.is_some()) || self.checking {
             ctx.request_repaint_after(Duration::from_millis(50));
         }
@@ -601,7 +601,7 @@ impl LauncherUi {
             return;
         }
         ctx.request_repaint_after(Duration::from_millis(250));
-        let t = Tokens::get(ctx);
+        let t = Tokens::get(ctx, self.settings.theme);
         let anchor = egui::vec2(-20.0, -(crate::views::FOOTER_H + 12.0));
         egui::Area::new(egui::Id::new("toasts")).anchor(egui::Align2::RIGHT_BOTTOM, anchor).order(egui::Order::Foreground).show(ctx, |ui| {
             ui.set_max_width(380.0);

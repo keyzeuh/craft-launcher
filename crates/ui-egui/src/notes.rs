@@ -3,6 +3,7 @@
 use egui::{RichText, Ui};
 
 use crate::theme::Tokens;
+use crate::theme::ThemeChoice;
 
 /// One line of notes, classified.
 #[derive(Debug, PartialEq, Eq)]
@@ -35,7 +36,7 @@ pub(crate) fn classify(line: &str) -> Line<'_> {
 }
 
 pub(crate) fn show(ui: &mut Ui, notes: &str) {
-    let t = Tokens::get(ui.ctx());
+    let t = Tokens::get(ui.ctx(), ThemeChoice::System);
     if notes.trim().is_empty() {
         ui.label(RichText::new(tl!("No notes were published with this release.")).color(t.muted));
         return;

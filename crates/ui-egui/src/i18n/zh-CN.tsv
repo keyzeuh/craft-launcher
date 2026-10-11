@@ -296,3 +296,5 @@ soundcraft	Recording, editing and mixing audio	音频录制、编辑与混音
 @msg	{name} installed: {version} (this release publishes no checksum, so only its size was checked)	{name} 已安装：{version}（此版本未发布校验和，因此只检查了文件大小）
 @msg	{name} was removed	{name} 已卸载
 @msg	{name} is running. Quit it, then try again.	{name} 正在运行。请先退出，然后重试。
+High contrast (dark)	高コントラスト ( dark )
+High contrast (light)	高コントラスト ( light )

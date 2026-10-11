@@ -16,7 +16,7 @@ impl LauncherUi {
             self.alert_popup(ctx);
             return;
         };
-        let t = Tokens::get(ctx);
+        let t = Tokens::get(ctx, self.settings.theme);
         let modal = egui::Modal::new(egui::Id::new("dialog"))
             .frame(egui::Frame::new().fill(t.bg).stroke(egui::Stroke::new(1.0, t.line_strong)).shadow(theme::shadow(&t)).inner_margin(24));
         let mut close = false;
@@ -34,7 +34,7 @@ impl LauncherUi {
     /// The first alert from the release feed the user hasn't acknowledged, as a popup.
     fn alert_popup(&mut self, ctx: &egui::Context) {
         let Some(alert) = self.alerts.iter().find(|a| !self.settings.dismissed_notices.contains(&a.id)).cloned() else { return };
-        let t = Tokens::get(ctx);
+        let t = Tokens::get(ctx, self.settings.theme);
         let modal = egui::Modal::new(egui::Id::new("feed_alert"))
             .frame(egui::Frame::new().fill(t.bg).stroke(egui::Stroke::new(1.0, t.line_strong)).shadow(theme::shadow(&t)).inner_margin(24));
         let mut ok = false;
@@ -61,8 +61,8 @@ impl LauncherUi {
         }
     }
 
-    fn title(ui: &mut egui::Ui, icon: Option<egui::ImageSource<'static>>, title: &str, subtitle: &str) {
-        let t = Tokens::get(ui.ctx());
+    fn title(ui: &mut egui::Ui, icon: Option<egui::ImageSource<'static>>, title: &str, subtitle: &str, theme: ThemeChoice) {
+        let t = Tokens::get(ui.ctx(), theme);
         ui.horizontal(|ui| {
             if let Some(icon) = icon {
                 ui.add(egui::Image::new(icon).fit_to_exact_size(vec2(40.0, 40.0)));
@@ -84,7 +84,7 @@ impl LauncherUi {
         let Some(release) = entry.release().cloned() else { return true };
         ui.set_width(560.0f32.min(ui.ctx().content_rect().width() - 80.0));
         let date = release.published_at.map(|d| fmt(tl!("Released {date}"), &[("date", &crate::views::date_text(d))])).unwrap_or_default();
-        Self::title(ui, crate::icons::app(id), &format!("{} {}", entry.app.name, release.version_label()), &date);
+        Self::title(ui, crate::icons::app(id), &format!("{} {}", entry.app.name, release.version_label()), &date, self.settings.theme);
         egui::ScrollArea::vertical().max_height(ui.ctx().content_rect().height() * 0.6).show(ui, |ui| {
             if release.notes.is_empty() {
                 ui.label(tl!("These notes weren't fetched (GitHub's request limit was reached). They're on the release page."));
@@ -104,10 +104,10 @@ impl LauncherUi {
     }
 
     fn launcher_update_dialog(&mut self, ui: &mut egui::Ui, r: &artcraft_launcher_core::Release) -> bool {
-        let t = Tokens::get(ui.ctx());
+        let t = Tokens::get(ui.ctx(), self.settings.theme);
         ui.set_width(480.0f32.min(ui.ctx().content_rect().width() - 80.0));
         let title = fmt(tl!("ArtCraft Launcher {version} is available."), &[("version", &r.version_label())]);
-        Self::title(ui, Some(crate::icons::artcraft_mark()), &title, "");
+        Self::title(ui, Some(crate::icons::artcraft_mark()), &title, "", self.settings.theme);
         ui.label(RichText::new(tl!("A new version is available. Would you like to relaunch with the updated version?")).color(t.muted));
         ui.add_space(14.0);
         let mut close = false;
@@ -139,9 +139,9 @@ impl LauncherUi {
 
     fn uninstall_dialog(&mut self, ui: &mut egui::Ui, id: &str) -> bool {
         let Some(entry) = self.entry(id).cloned() else { return true };
-        let t = Tokens::get(ui.ctx());
+        let t = Tokens::get(ui.ctx(), self.settings.theme);
         ui.set_width(420.0);
-        Self::title(ui, crate::icons::app(id), &fmt(tl!("Uninstall {name}?"), &[("name", entry.app.name)]), "");
+        Self::title(ui, crate::icons::app(id), &fmt(tl!("Uninstall {name}?"), &[("name", entry.app.name)]), "", self.settings.theme);
         let how = match entry.installed.as_ref().map(|i| i.source) {
             Some(artcraft_launcher_core::InstallSource::MacApp) => tl!("The app will be moved to the Trash. Your documents and settings stay."),
             Some(artcraft_launcher_core::InstallSource::Msi) => {
@@ -170,10 +170,10 @@ impl LauncherUi {
     }
 
     fn settings_dialog(&mut self, ui: &mut egui::Ui, host: &mut dyn Host) -> bool {
-        let t = Tokens::get(ui.ctx());
+        let t = Tokens::get(ui.ctx(), self.settings.theme);
         // Wide enough for the community buttons and every social icon on one row.
         ui.set_width(520.0);
-        Self::title(ui, Some(crate::icons::artcraft_mark()), tl!("Settings"), &format!("ArtCraft Launcher {}", env!("CARGO_PKG_VERSION")));
+        Self::title(ui, Some(crate::icons::artcraft_mark()), tl!("Settings"), &format!("ArtCraft Launcher {}", env!("CARGO_PKG_VERSION")), self.settings.theme);
         let section = |ui: &mut egui::Ui, s: &str| {
             ui.add_space(14.0);
             widgets::hud(ui, s, t.faint);

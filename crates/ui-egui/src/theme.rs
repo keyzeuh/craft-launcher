@@ -15,10 +15,20 @@ pub enum ThemeChoice {
     System,
     Dark,
     Light,
+    /// High contrast dark mode: maximum readability with strong contrast.
+    HighContrastDark,
+    /// High contrast light mode: maximum readability with strong contrast.
+    HighContrastLight,
 }
 
 impl ThemeChoice {
-    pub const ALL: [Self; 3] = [Self::System, Self::Dark, Self::Light];
+    pub const ALL: [Self; 5] = [
+        Self::System,
+        Self::Dark,
+        Self::Light,
+        Self::HighContrastDark,
+        Self::HighContrastLight,
+    ];
 
     /// The English key translated at draw time into the current UI language
     /// (the shell sets it per frame via `i18n::set_current`). Same-crate lookup,
@@ -28,6 +38,8 @@ impl ThemeChoice {
             Self::System => crate::i18n::t("Match system"),
             Self::Dark => crate::i18n::t("Dark"),
             Self::Light => crate::i18n::t("Light"),
+            Self::HighContrastDark => crate::i18n::t("High contrast (dark)"),
+            Self::HighContrastLight => crate::i18n::t("High contrast (light)"),
         }
     }
 }
@@ -114,8 +126,66 @@ impl Tokens {
         bad: hex(0xb3261e),
     };
 
-    pub fn get(ctx: &egui::Context) -> Self {
-        if ctx.theme() == egui::Theme::Dark { Self::DARK } else { Self::LIGHT }
+    /// High contrast dark mode: strong contrast with refined neutral surfaces.
+    pub const HIGH_CONTRAST_DARK: Self = Self {
+        dark: true,
+        bg: hex(0x121316),
+        sunken: hex(0x060607),
+
+        ink: hex(0xf2f1ee),
+        ink_strong: hex(0xffffff),
+        muted: hex(0xc9c8c5),
+        faint: hex(0xb0afac),
+
+        line: hex(0x77787d),
+        line_strong: hex(0xb8b8bc),
+
+        accent: hex(0x2d81ff),
+        accent_ink: hex(0x8bb8ff),
+
+        invert_bg: hex(0xffffff),
+        invert_fg: hex(0x0b0b0c),
+
+        good: hex(0x3fd6b8),
+        warn: hex(0xffc14d),
+        bad: hex(0xff6259),
+    };
+
+    /// High contrast light mode: clean light surfaces with strong dark text.
+    pub const HIGH_CONTRAST_LIGHT: Self = Self {
+        dark: false,
+        bg: hex(0xf2f1ee),
+        sunken: hex(0xe3e2de),
+
+        ink: hex(0x101014),
+        ink_strong: hex(0x000000),
+        muted: hex(0x39393e),
+        faint: hex(0x505056),
+
+        line: hex(0x77777d),
+        line_strong: hex(0x303036),
+
+        accent: hex(0x1659c4),
+        accent_ink: hex(0x12479c),
+
+        invert_bg: hex(0x101014),
+        invert_fg: hex(0xf2f1ee),
+
+        good: hex(0x086b59),
+        warn: hex(0x795000),
+        bad: hex(0xb3261e),
+    };
+
+    pub fn get(ctx: &egui::Context, choice: ThemeChoice) -> Self {
+        match choice {
+            ThemeChoice::System => {
+                if ctx.theme() == egui::Theme::Dark { Self::DARK } else { Self::LIGHT }
+            }
+            ThemeChoice::Dark => Self::DARK,
+            ThemeChoice::Light => Self::LIGHT,
+            ThemeChoice::HighContrastDark => Self::HIGH_CONTRAST_DARK,
+            ThemeChoice::HighContrastLight => Self::HIGH_CONTRAST_LIGHT,
+        }
     }
 
     pub fn hairline(&self) -> Stroke {
@@ -181,12 +251,21 @@ fn visuals(t: &Tokens) -> Visuals {
 
 /// Applies both appearances (egui switches between them with the theme preference).
 pub fn apply(ctx: &egui::Context, choice: ThemeChoice) {
-    ctx.set_visuals_of(egui::Theme::Dark, visuals(&Tokens::DARK));
-    ctx.set_visuals_of(egui::Theme::Light, visuals(&Tokens::LIGHT));
+    let (dark_visuals, light_visuals) = match choice {
+        ThemeChoice::System => (visuals(&Tokens::DARK), visuals(&Tokens::LIGHT)),
+        ThemeChoice::Dark => (visuals(&Tokens::DARK), visuals(&Tokens::DARK)),
+        ThemeChoice::Light => (visuals(&Tokens::LIGHT), visuals(&Tokens::LIGHT)),
+        ThemeChoice::HighContrastDark => (visuals(&Tokens::HIGH_CONTRAST_DARK), visuals(&Tokens::HIGH_CONTRAST_DARK)),
+        ThemeChoice::HighContrastLight => (visuals(&Tokens::HIGH_CONTRAST_LIGHT), visuals(&Tokens::HIGH_CONTRAST_LIGHT)),
+    };
+    ctx.set_visuals_of(egui::Theme::Dark, dark_visuals);
+    ctx.set_visuals_of(egui::Theme::Light, light_visuals);
     ctx.set_theme(match choice {
         ThemeChoice::System => egui::ThemePreference::System,
         ThemeChoice::Dark => egui::ThemePreference::Dark,
         ThemeChoice::Light => egui::ThemePreference::Light,
+        ThemeChoice::HighContrastDark => egui::ThemePreference::Dark,
+        ThemeChoice::HighContrastLight => egui::ThemePreference::Light,
     });
     ctx.all_styles_mut(|style| {
         style.spacing.item_spacing = egui::vec2(8.0, 6.0);

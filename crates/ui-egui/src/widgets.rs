@@ -9,6 +9,7 @@ use egui::{Color32, CornerRadius, Galley, Rect, Response, RichText, Sense, Strok
 
 use crate::model::Tone;
 use crate::theme::{self, Tokens};
+use crate::theme::ThemeChoice;
 
 pub fn tone_color(t: &Tokens, tone: Tone) -> Color32 {
     match tone {
@@ -72,7 +73,7 @@ pub fn hud_elided(ui: &mut Ui, text: &str, color: Color32, max_width: f32) -> Re
 
 /// "01 / Classic apps": a section eyebrow, the index faint.
 pub fn eyebrow(ui: &mut Ui, index: &str, label: &str) {
-    let t = Tokens::get(ui.ctx());
+    let t = Tokens::get(ui.ctx(), ThemeChoice::System);
     ui.horizontal(|ui| {
         ui.spacing_mut().item_spacing.x = 0.0;
         hud(ui, index, t.faint);
@@ -93,14 +94,14 @@ pub fn tag(ui: &mut Ui, text: &str, fill: Color32, ink: Color32) -> Response {
 
 /// A vertical hairline `height` tall: divides the header's cells.
 pub fn rule(ui: &mut Ui, height: f32) {
-    let t = Tokens::get(ui.ctx());
+    let t = Tokens::get(ui.ctx(), ThemeChoice::System);
     let (rect, _) = ui.allocate_exact_size(vec2(1.0, height), Sense::hover());
     ui.painter().vline(rect.center().x, rect.y_range(), t.hairline());
 }
 
 /// A header link, like the site's nav: a mono label whose span inverts on hover or when `active`.
 pub fn nav_link(ui: &mut Ui, text: &str, tip: &str, height: f32, active: bool) -> Response {
-    let t = Tokens::get(ui.ctx());
+    let t = Tokens::get(ui.ctx(), ThemeChoice::System);
     let galley = hud_galley(ui, text, t.muted);
     let (rect, resp) = ui.allocate_exact_size(vec2(galley.size().x + 20.0, height), Sense::click());
     let on = active || resp.hovered();
@@ -116,7 +117,7 @@ pub fn nav_link(ui: &mut Ui, text: &str, tip: &str, height: f32, active: bool) -
 /// A square header cell with a symbol and a hairline on its left; inverts on hover. While `busy`
 /// it shows a spinner and can't be clicked.
 pub fn nav_icon(ui: &mut Ui, symbol: &str, tip: &str, height: f32, busy: bool) -> Response {
-    let t = Tokens::get(ui.ctx());
+    let t = Tokens::get(ui.ctx(), ThemeChoice::System);
     let (rect, resp) = ui.allocate_exact_size(vec2(height, height), if busy { Sense::hover() } else { Sense::click() });
     let p = ui.painter();
     let hovered = resp.hovered() && !busy;
@@ -181,7 +182,7 @@ pub fn window_buttons(ui: &mut Ui, height: f32) {
 }
 
 fn window_button(ui: &mut Ui, button: WindowButton, height: f32) -> Response {
-    let t = Tokens::get(ui.ctx());
+    let t = Tokens::get(ui.ctx(), ThemeChoice::System);
     let (rect, _) = ui.allocate_exact_size(vec2(46.0, height), Sense::hover());
     // Clickable below the resize band along the top (and, for close, the right edge).
     let right = if button == WindowButton::Close { RESIZE_EDGE } else { 0.0 };
@@ -235,7 +236,7 @@ pub fn window_edges(ctx: &egui::Context) {
     if maximized || fullscreen {
         return;
     }
-    let t = Tokens::get(ctx);
+    let t = Tokens::get(ctx, ThemeChoice::System);
     let r = ctx.content_rect();
     ctx.layer_painter(egui::LayerId::new(egui::Order::Foreground, egui::Id::new("window-border"))).rect_stroke(
         r,
@@ -277,7 +278,7 @@ pub fn window_edges(ctx: &egui::Context) {
 
 /// A mono link with an ↗: muted, ink on hover. Opens `url` in the browser.
 pub fn hud_link(ui: &mut Ui, text: &str, url: &str) -> Response {
-    let t = Tokens::get(ui.ctx());
+    let t = Tokens::get(ui.ctx(), ThemeChoice::System);
     let galley = hud_galley(ui, &format!("{text} ↗"), t.muted);
     let (rect, resp) = ui.allocate_exact_size(galley.size(), Sense::click());
     paint_left(ui, rect, galley, if resp.hovered() { t.ink_strong } else { t.muted });
@@ -291,7 +292,7 @@ pub fn hud_link(ui: &mut Ui, text: &str, url: &str) -> Response {
 
 /// A small square status badge: 10 px mono on the sunken surface, in `color`.
 pub fn badge(ui: &mut Ui, text: &str, color: Color32) -> Response {
-    let t = Tokens::get(ui.ctx());
+    let t = Tokens::get(ui.ctx(), ThemeChoice::System);
     let galley = caps(ui, text, 10.0, theme::mono(), 1.0, color);
     let (rect, resp) = ui.allocate_exact_size(vec2(galley.size().x + 12.0, 20.0), Sense::hover());
     ui.painter().rect(rect, CornerRadius::ZERO, t.sunken, t.hairline(), egui::StrokeKind::Inside);
@@ -313,7 +314,7 @@ pub enum Kind {
 
 /// A square button with a mono upper-case label, at least `width` wide.
 pub fn button(ui: &mut Ui, text: &str, kind: Kind, width: f32) -> Response {
-    let t = Tokens::get(ui.ctx());
+    let t = Tokens::get(ui.ctx(), ThemeChoice::System);
     let galley = caps(ui, text, theme::HUD_SIZE, theme::mono_bold(), theme::BUTTON_SPACING, t.ink);
     let size = vec2((galley.size().x + 32.0).max(width), theme::CONTROL_H);
     let (rect, resp) = ui.allocate_exact_size(size, Sense::click());
@@ -344,7 +345,7 @@ pub struct Cell<'a> {
 /// Mutually exclusive options in a row of hairline cells (the site's share bar); the chosen one
 /// is inverted. Returns whether the choice changed.
 pub fn cells<T: PartialEq + Copy>(ui: &mut Ui, value: &mut T, options: &[(T, Cell<'_>)]) -> bool {
-    let t = Tokens::get(ui.ctx());
+    let t = Tokens::get(ui.ctx(), ThemeChoice::System);
     let mut changed = false;
     // In a right-to-left parent the row fills from the right: keep the options' order.
     let rtl = ui.layout().prefer_right_to_left();
@@ -401,7 +402,7 @@ pub fn cells<T: PartialEq + Copy>(ui: &mut Ui, value: &mut T, options: &[(T, Cel
 
 /// A slim square progress bar with a caption above it.
 pub fn progress(ui: &mut Ui, fraction: Option<f32>, caption: &str, color: Color32, width: f32) {
-    let t = Tokens::get(ui.ctx());
+    let t = Tokens::get(ui.ctx(), ThemeChoice::System);
     let (rect, _) = ui.allocate_exact_size(vec2(width, theme::CONTROL_H), Sense::hover());
     let p = ui.painter();
     let bar = Rect::from_min_size(egui::pos2(rect.left(), rect.bottom() - 4.0), vec2(width, 4.0));
@@ -448,7 +449,7 @@ pub enum Glyph {
 
 /// A small outlined square button with a drawn glyph; inverts on hover.
 pub fn glyph_button(ui: &mut Ui, glyph: Glyph, tip: &str) -> Response {
-    let t = Tokens::get(ui.ctx());
+    let t = Tokens::get(ui.ctx(), ThemeChoice::System);
     let (rect, resp) = ui.allocate_exact_size(vec2(theme::CONTROL_H, theme::CONTROL_H), Sense::click());
     let hovered = resp.hovered();
     let p = ui.painter();
@@ -477,7 +478,7 @@ pub fn glyph_button(ui: &mut Ui, glyph: Glyph, tip: &str) -> Response {
 
 /// The "…" button that opens an app's menu: an outlined square like [`glyph_button`].
 pub fn more_menu<R>(ui: &mut Ui, add_contents: impl FnOnce(&mut Ui) -> R) {
-    let t = Tokens::get(ui.ctx());
+    let t = Tokens::get(ui.ctx(), ThemeChoice::System);
     let btn =
         egui::Button::new(RichText::new("…").size(15.0).color(t.muted)).fill(Color32::TRANSPARENT).min_size(vec2(theme::CONTROL_H, theme::CONTROL_H));
     egui::containers::menu::MenuButton::from_button(btn).ui(ui, |ui| {
@@ -489,7 +490,7 @@ pub fn more_menu<R>(ui: &mut Ui, add_contents: impl FnOnce(&mut Ui) -> R) {
 /// ArtCraft's social accounts as a row of small monochrome icons (faint, brighter on hover).
 /// In a right-to-left layout they still read left to right.
 pub fn social_icons(ui: &mut Ui, size: f32) {
-    let t = Tokens::get(ui.ctx());
+    let t = Tokens::get(ui.ctx(), ThemeChoice::System);
     let rtl = ui.layout().prefer_right_to_left();
     let services = artcraft_launcher_core::catalog::SOCIAL;
     let ordered: Vec<&(&str, &str)> = if rtl { services.iter().rev().collect() } else { services.iter().collect() };
@@ -509,7 +510,7 @@ pub fn social_icons(ui: &mut Ui, size: f32) {
 
 /// An app's name as the site sets it: Archivo, with "Craft" in the app's colour.
 pub fn wordmark(ui: &mut Ui, app: &artcraft_launcher_core::CraftApp, size: f32) -> Response {
-    let t = Tokens::get(ui.ctx());
+    let t = Tokens::get(ui.ctx(), ThemeChoice::System);
     let (prefix, craft) = app.name.strip_suffix("Craft").map_or((app.name, ""), |p| (p, "Craft"));
     let mut job = egui::text::LayoutJob::default();
     let format = |color| egui::TextFormat {
